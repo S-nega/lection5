@@ -7,14 +7,29 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
+const filesRouter = require('./routes/files');
 
 const app = express();
 
 const http = require("http");
-const fs = require("fs");
-const httpServer = http.createServer(app);
 
-const PORT = process.env.PORT || 3000;
+// const httpServer = http.createServer(app);
+
+// const PORT = process.env.PORT || 3000;
+
+const server = http.createServer((req, res) => {
+  // Отправляем HTTP-заголовок с кодом состояния 200 (OK) и типом контента text/plain
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  // res.status(200).render('index');
+
+  res.end('Hello, client!\n');
+});
+
+// Слушаем порт 8080
+const port = 8080;
+server.listen(port, () => {
+  console.log(`Сервер слушает порт ${port}`);
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,32 +40,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-// app.use(express.static("public"))
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/files', filesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// // error handler
-// app.use(function(err, req, res, next) {
-//   // set locals, only providing error in development
-//   res.locals.message = err.message;
-//   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-//   // render the error page
-//   res.status(err.status || 500);
-//   res.render('error');
-// });
-
-
 mongoose.
 connect('mongodb+srv://admin:admin@booksdb.9ym73nv.mongodb.net/?retryWrites=true&w=majority')
 .then(() => {
 console.log('connected to MongoDB')
+console.log('Hello, Node.js')
   }).catch((error) => {
     console.log(error)
 })
@@ -66,7 +70,7 @@ const handleError = (err, res) => {
 };
 
 const upload = multer({
-  dest: "/public/images/"
+  dest: "/public/docs/"
 });
 
 module.exports = app;

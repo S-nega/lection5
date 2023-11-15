@@ -1,0 +1,8 @@
+extends layout
+
+block content
+  p write something to the file
+  form(action="/files/add" method="post")
+    input(type="text" name="name" placeholder="example.txt")
+    input(type="text" name="text" placeholder="write something") 
+    input(type="submit" value="Add")
