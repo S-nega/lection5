@@ -4,6 +4,12 @@ block content
   h1= title
   p reading
 
-
+  p #{dir}
+  p #{d}
+  //- #{name} = #{dir} + #{d}
   each d in data
-    p <a href="read/#{d}" >#{d}
+    //- form(action="/files/read/#{d}" method="get")
+    //-   input(type="text" visibility="hidden" name="dir" value="#{dir}") 
+    //-   input(type="hidden" name="name" value="#{d}") 
+    //-   input(type="submit" value="#{d}")
+    p <a href="/files/read/#{d}">#{d} | <a href="/files/edit/#{d}"> edit #{d}

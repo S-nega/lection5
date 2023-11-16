@@ -6,7 +6,6 @@ block content
 
   p reading #{name}
 
-  p #{data}
-
-  form(action="/files/del/#{name}", method="post")
+  form(action="/files/edit/#{name}", method="post")
+    input(type="text" name="data" value="#{data}")
     input(type="submit" value="del") 
