@@ -10,3 +10,7 @@ block content
 
   form(action="/files/del/#{name}", method="post")
     input(type="submit" value="del") 
+
+  form(action="/files/edit/#{name}", method="get")
+    input(type="submit" value="edit")
+  //- <a href="/files/edit/#{name}" class="button"> edit

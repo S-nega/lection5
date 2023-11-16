@@ -1,13 +1,15 @@
 extends layout
 
 block content
-  h1= title
+
+  a(href="/files/write") add new one
+
   p reading
 
   p #{dir}
   p #{d}
-  //- #{name} = #{dir} + #{d}
   each d in data
+
     //- form(action="/files/read/#{d}" method="get")
     //-   input(type="text" visibility="hidden" name="dir" value="#{dir}") 
     //-   input(type="hidden" name="name" value="#{d}") 
