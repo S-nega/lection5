@@ -66,30 +66,38 @@ router.get('/edit/:name', async(req, res) => {// to fix folder
 //adding
 router.post('/add', async(req, res) => {
   actualData = null;
-  console.log(req.body.name);
-  filePath = './public/docs/' + req.body.name
-  try{
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) {
-
-        fs.writeFile(filePath, req.body.text, (err) => {
-          if (err) {
-              console.error(`Ошибка при записи в файл ${filePath}: ${err.message}`);
-          } else {
-              console.log(`Данные успешно записаны в файл ${filePath}`);
-              res.redirect('/files/read');
-          }
-        });
-        
-      } else {
-        console.log("such name is already added");
-        res.redirect('/files/write');
-    }
-    })
-  }catch(error){
-    console.log(error)
-    res.status(500).json({message: error.message})
+  const name = req.body.name 
+  console.log(name);
+  if (!name || name.length < 5 || name.substr(name.length - 4) !== '.txt'){
+    console.log("uncorrect name of format. It should be .txt")
+    res.redirect('/files/write');
   }
+  else{
+    filePath = './public/docs/' + name
+    try{
+      fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+  
+          fs.writeFile(filePath, req.body.text, (err) => {
+            if (err) {
+                console.error(`Ошибка при записи в файл ${filePath}: ${err.message}`);
+            } else {
+                console.log(`Данные успешно записаны в файл ${filePath}`);
+                res.redirect('/files/read');
+            }
+          });
+          
+        } else {
+          console.log("such name is already added");
+          res.redirect('/files/write');
+      }
+      })
+    }catch(error){
+      console.log(error)
+      res.status(500).json({message: error.message})
+    }
+  }
+  
   
 })
 
