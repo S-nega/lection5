@@ -1,0 +1,11 @@
+extends layout
+
+block content
+
+  a(href="/files/read") to full list
+
+  p reading #{name}
+
+  form(action="/files/edit/#{name}", method="post")
+    input(type="text" name="name" value="#{name}" )
+    input(type="submit" value="save") 

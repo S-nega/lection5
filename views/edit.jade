@@ -7,6 +7,6 @@ block content
   p reading #{name}
 
   form(action="/files/edit/#{name}", method="post")
-    input(type="hidden" name="name" value="#{name}" visibility="hidden" )
+    input(type="text" name="name" value="#{name}" )
     input(type="text" name="data" value="#{data}")
     input(type="submit" value="save") 

@@ -1,6 +1,8 @@
 extends layout
 
 block content
+  p 
+    a(href="/files/read") back to list
   p write something to the file
   form(action="/files/add" method="post")
     input(type="text" name="name" placeholder="example.txt")

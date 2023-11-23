@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  p 
+    a(href="/files/read") back to list
+  p write the name of the folder
+  form(action="/files/add" method="post")
+    input(type="text" name="name" placeholder="example")
+    //- input(type="text" name="text" placeholder="write something") 
+    input(type="submit" value="Add")

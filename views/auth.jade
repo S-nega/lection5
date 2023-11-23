@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    form(action="/users/auth/", method="post") 
+        p Enter your email: 
+        <input type="email" name = "email">
+        br
+        p Enter your password: 
+        <input type="password" name = "password">
+        br
+        br
+        button(type="submit" value="save") Sign In
+        br
+        br
+        
+    <a href="/users/reg"> Don't have an account? </a>
+    br
+    <a href="/users"> Continue without authorithation </a>

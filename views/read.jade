@@ -2,11 +2,43 @@ extends layout
 
 block content
 
-  a(href="/files/write") add new one
+  if currentuser
+    p Hello, #{currentuser.name} !
+    <a href="/users/auth">Log Out</a>
+    br
+    br
+    a(href="/files/write/file") add new file
+    br
+    a(href="/files/write/fold") add new folder
+  else 
+    p You are not registered
+    <a href="/users/auth">Log In to your account</a>
+    br
+    <a href="/users/reg">Don't have an account?</a>
+    
+    br
+  br
 
-  p reading
+  br
+  a(href="/users") back to users
 
-  p #{dir}
+  br
+  br
+
+  if dir 
+    a(href="/files/read") back to list
+    br
+    br
+
+    p #{dir}
+    if currentuser
+      form(action="/files/del/#{dir}", method="post")
+          input(type="submit" value="del") 
+
+      form(action="/files/edit/#{dir}", method="get")
+        input(type="submit" value="edit")
+
+
   p #{d}
   each d in data
 
@@ -14,4 +46,5 @@ block content
     //-   input(type="text" visibility="hidden" name="dir" value="#{dir}") 
     //-   input(type="hidden" name="name" value="#{d}") 
     //-   input(type="submit" value="#{d}")
-    p <a href="/files/read/#{d}">#{d} | <a href="/files/edit/#{d}"> edit #{d}
+    p 
+      <a href="/files/read/#{d}">#{d} 

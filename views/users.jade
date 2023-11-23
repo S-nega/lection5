@@ -1,0 +1,23 @@
+extends layout
+
+block content
+    if currentuser
+        p Hello, #{currentuser.name} !
+        <a href="/users/auth">Log Out</a>
+    else 
+        p You are not registered
+        <a href="/users/auth">Log In to your account</a>
+        br
+        <a href="/users/reg">Don't have an account?</a>
+    
+    br
+    br
+
+
+    p 
+        a(href="/files/read") read files
+    p users-list:
+
+    each user in users
+        p name: <a href=/users/#{user.id}> !{user.name} </a>
+        

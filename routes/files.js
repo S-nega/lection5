@@ -24,110 +24,297 @@ router.get('/read', async(req, res) => {
 router.get('/read/:name', async(req, res) => {// to fix folder
   console.log('reads')
   const {name} = req.params;
-  filePath = './public/docs/' + name;
+  
+  if(name.indexOf('.') <= -1){
+    directoryPath = './public/docs/' + name 
+    readDirectory(res, directoryPath)
+  }
 
-  readFile(res, filePath);
-  console.log("actual data: " + actualData)
-  if (actualData == null){
-    sendData(res, '/files/read/' + name);
-  }
   else{
-    res.status(200).render('readf', {data: actualData, name:  name})
-    actualData = null;
-    console.log('deleted actual data')
+    filePath = './public/docs/' + name;
+    readFile(res, filePath);
+    console.log("actual data: " + actualData)
+    if (actualData == null){
+      sendData(res, '/files/read/' + name);
+    }
+    else{
+      res.status(200).render('readf', {data: actualData, name:  name})
+      actualData = null;
+      console.log('deleted actual data')
+    }
   }
+  
 });
 
 
 //add page
-router.get('/write', async(req, res) => {
-  actualData = null;
-  console.log('writes')
-  res.render('write');
+router.get('/write/:type', async(req, res) => {
+  const {type} = req.params; 
+  console.log(type);
+  try{
+    if (currentuser != null){
+      actualData = null;
+      console.log('writes')
+      if(type === 'fold'){
+        res.render('writefolder');
+      }
+      else{
+        res.render('write');
+      }
+        // res.status(200).render(`edituser`, {currentuser: user});
+    }
+    else{
+      console.log("you are not registered")
+      res.status(200).render(`user`, {user: user});
+    }
+  } catch(error){
+    currentuser = null;
+    res.status(500).redirect('/users/auth');
+  }
 })
 
 //edit page
 router.get('/edit/:name', async(req, res) => {// to fix folder 
-  console.log('edit')
+  console.log('edit page')
   const {name} = req.params;
-  filePath = './public/docs/' + name;
+  console.log(name)
+  
+  if(name.indexOf('.') <= -1){//directory
+    directoryPath = './public/docs/' + name 
 
-  readFile(res, filePath);
-  console.log("actual data: " + actualData)
-  if (actualData == null){
-    sendData(res, '/files/edit/' + name);
+    console.log("edit page ")
+    fs.readdir(directoryPath, 'utf8', (err, data) => {
+      if (err) { 
+        console.log('no such file or directory')
+        res.render('read')
+      }
+      else{//rename directory
+
+        res.render('editfolder', {name: name} )
+        // try {
+        //   fs.renameSync(oldPath, newPath);
+        //   console.log(`Файл или директория успешно переименованы.`);
+        // } catch (err) {
+        //     console.error(`Ошибка при переименовании: ${err.message}`);
+        // }
+      }
+    });
   }
-  else{
-    res.status(200).render('edit', {data: actualData, name:  name})
+
+  else{//file
+    filePath = './public/docs/' + name;
+    
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        console.log('no such file or directory')
+        res.render('read')
+      }
+      else{
+        res.render('edit', {name: name, data: data} )
+
+        // updateFileSync(filePath, newData, newPath);
+      }
+    });
+    
+    console.log("actual data: " + actualData)
+    if (actualData == null){
+      sendData(res, '/files/read/' + name);
+    }
+    else{
+      res.status(200).render('readf', {data: actualData, name:  name})
+      actualData = null;
+      console.log('deleted actual data')
+    }
   }
+  
+
+
+  // try{
+  //   if (currentuser !== null){
+  //     console.log('edit')
+  //     const {name} = req.params;
+  //     filePath = './public/docs/' + name;
+
+  //     readFile(res, filePath);
+
+  //     console.log("actual data: " + actualData)
+  //     if (actualData == null){
+  //       sendData(res, '/files/edit/' + name);
+  //     }
+  //     else{
+  //       res.status(200).render('edit', {data: actualData, name:  name, currentuser: currentuser})
+  //     }
+  //   }
+  //   else{
+  //     console.log("you are not registered")
+  //     res.status(200).render(`user`, {user: user});
+  //   }
+  // } catch(error){
+  //   currentuser = null;
+  //   res.status(500).redirect('/users/auth');
+  // }
 });
 
 
 //adding
 router.post('/add', async(req, res) => {
-  actualData = null;
-  const name = req.body.name 
-  console.log(name);
-  if (!name || name.length < 5 || name.substr(name.length - 4) !== '.txt'){
-    console.log("uncorrect name of format. It should be .txt")
-    res.redirect('/files/write');
-  }
-  else{
-    filePath = './public/docs/' + name
-    try{
-      fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-  
-          fs.writeFile(filePath, req.body.text, (err) => {
-            if (err) {
-                console.error(`Ошибка при записи в файл ${filePath}: ${err.message}`);
-            } else {
-                console.log(`Данные успешно записаны в файл ${filePath}`);
-                res.redirect('/files/read');
+  try{
+    if (currentuser !== null){
+      actualData = null;
+      const name = req.body.name 
+      console.log(name);
+      if (!name || name.length < 5 || name.substr(name.length - 4) !== '.txt'){
+        
+        if(name.indexOf('.') <= -1){
+          directoryPath = './public/docs/' + name 
+
+          try{
+            fs.readdir(directoryPath, 'utf8', (err, data) => {
+              if (err) {
+        
+                fs.mkdir(directoryPath, { recursive: true }, (err) => {
+                  if (err) {
+                      console.error(`Ошибка при создании директории ${directoryPath}: ${err.message}`);
+                  } else {
+                      console.log(`Директория ${directoryPath} успешно создана.`);
+                      res.redirect('/files/read');
+                  }
+              });
+                
+              } else {
+                console.log("such name is already added");
+                res.redirect('/files/write/ford');
             }
-          });
-          
-        } else {
-          console.log("such name is already added");
-          res.redirect('/files/write');
+            })
+          }catch(error){
+            console.log(error)
+            res.status(500).json({message: error.message})
+          }
+
+        }
+        else{
+          console.log("uncorrect name of format. It should be .txt for file and none for folder")
+          res.redirect('/files/write');  
+        }
+      
       }
-      })
-    }catch(error){
-      console.log(error)
-      res.status(500).json({message: error.message})
+      else{
+        filePath = './public/docs/' + name
+        try{
+          fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+      
+              fs.writeFile(filePath, req.body.text, (err) => {
+                if (err) {
+                    console.error(`Ошибка при записи в файл ${filePath}: ${err.message}`);
+                } else {
+                    console.log(`Данные успешно записаны в файл ${filePath}`);
+                    res.redirect('/files/read');
+                }
+              });
+              
+            } else {
+              console.log("such name is already added");
+              res.redirect('/files/write');
+          }
+          })
+        }catch(error){
+          console.log(error)
+          res.status(500).json({message: error.message})
+        }
+      }
     }
+    else{
+      console.log("you are not registered")
+      res.status(200).render(`user`, {user: user});
+    }
+  } catch(error){
+    currentuser = null;
+    res.status(500).redirect('/users/auth');
   }
-  
-  
 })
 
 //edit
 router.post('/edit/:name', async(req, res) => {
-  actualData = null;
-  const name = req.body.name
-  filePath = './public/docs/' + name
+  try{
+    if (currentuser != null){
+      actualData = null;
+      const {name} = req.params;
+      const newname = req.body.name
+      const newData = req.body.data;
 
-  const newData = req.body.data;
+      //direct edit
+      if(name.indexOf('.') <= -1){
+        directoryPath = './public/docs/' + name 
 
-  updateFileSync(filePath, newData);
-  res.redirect('/files/edit/' + name);
+        try{
+          fs.readdir(directoryPath, 'utf8', (err, data) => {
+            if (err) {
+      
+              fs.mkdir(directoryPath, { recursive: true }, (err) => {
+                if (err) {
+                    console.error(`Ошибка при создании директории ${directoryPath}: ${err.message}`);
+                } else {
+                    console.log(`Директория ${directoryPath} успешно создана.`);
+                    res.redirect('/files/read');
+                }
+            });
+              
+            } else {
+              console.log("such name is already added");
+              res.redirect('/files/write/ford');
+          }
+          })
+        }catch(error){
+          console.log(error)
+          res.status(500).json({message: error.message})
+        }
 
+      }
+      else{
+        //file edit
+        filePath = './public/docs/' + name
+        newPath = './public/docs/' + newname
+        updateFileSync(filePath, newData, newPath);
+        res.redirect('/files/read/' + newname);
+      }
+    }
+    else{
+      console.log("you are not registered")
+      res.status(200).render(`user`, {user: user});
+    }
+  } catch(error){
+    currentuser = null;
+    res.status(500).redirect('/users/auth');
+  }
 })
 
 //delete
 router.post('/del/:name', async(req,res) => {
-  actualData = null;
-  const {name} = req.params;
-  filePath = './public/docs/' + name;
-  console.log('delete: ' + filePath);
-  fs.unlink(filePath, (err) => {
-    if (err) {
-        console.error(`Ошибка при удалении файла ${filePath}: ${err.message}`);
-    } else {
-        console.log(`Файл ${filePath} успешно удален.`);
-        res.redirect('/files/read');
-    }
-  });
+
+try{
+  if (currentuser != null){
+    actualData = null;
+    const {name} = req.params;
+    filePath = './public/docs/' + name;
+    console.log('delete: ' + filePath);
+    fs.unlink(filePath, (err) => {
+      if (err) {
+          console.error(`Ошибка при удалении файла ${filePath}: ${err.message}`);
+      } else {
+          console.log(`Файл ${filePath} успешно удален.`);
+          res.redirect('/files/read');
+      }
+    });
+  }
+  else{
+    console.log("you are not registered")
+    res.status(200).render(`user`, {user: user});
+  }
+  } catch(error){
+    currentuser = null;
+    res.status(500).redirect('/users/auth');
+  }
 })
 
 
@@ -161,12 +348,12 @@ function readDirectory(res, directoryPath){
 function readFile(res, filePath){
   fs.readFile(filePath, 'utf8', (err, data) => {
     if (err) {
-      directoryPath = './public/docs/' + name;
+      directoryPath = filePath;
       readDirectory(res, directoryPath);
     } else {
-      actualData = data; 
-      console.log( "read data: " + data);
-      console.log('act in read data: ' + actualData)
+      // actualData = data; 
+      // console.log( "read data: " + data);
+      // console.log('act in read data: ' + actualData)
     } 
   });
 }
@@ -198,10 +385,18 @@ function sendData(res, address){
 }
 
 
-function updateFileSync(filePath, newData) {
+function updateFileSync(filePath, newData, newPath) {
   try {
     fs.writeFileSync(filePath, newData, 'utf8');
     console.log(`Данные успешно обновлены в файле ${filePath}.`);
+
+    try {
+      oldPath = filePath
+      fs.renameSync(oldPath, newPath);
+      console.log(`Файл или директория успешно переименованы.`);
+    } catch (err) {
+        console.error(`Ошибка при переименовании: ${err.message}`);
+    }
 
   } catch (err) {
       console.error(`Ошибка при записи в файл ${filePath}: ${err.message}`);
