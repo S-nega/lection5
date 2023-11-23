@@ -24,27 +24,81 @@ router.get('/read', async(req, res) => {
 router.get('/read/:name', async(req, res) => {// to fix folder
   console.log('reads')
   const {name} = req.params;
-  
+  // const direct = req.body.direct
+  // const {direct} = req.params.direct;
+  // console.log("dir: " + direct);
+  // console.log("dir: " + req.body.direct);
+  // if (direct){
+  //   name = direct+"/"+name
+  //   console.log('it was')
+  // }
+
+  directoryPath = filePath = './public/docs/' + name;
+
+  //reading part
+  console.log("path: " + directoryPath)
   if(name.indexOf('.') <= -1){
-    directoryPath = './public/docs/' + name 
+    console.log('read one dir')
     readDirectory(res, directoryPath)
   }
 
   else{
-    filePath = './public/docs/' + name;
-    readFile(res, filePath);
+    // readFile(res, filePath);
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      actualData = data
+    })
     console.log("actual data: " + actualData)
     if (actualData == null){
-      sendData(res, '/files/read/' + name);
+      fs.readFile(filePath, 'utf8', (err, data) => {
+        actualData = data
+        res.redirect('/files/read/' + name)
+      })
+      // sendData(res, '/files/read/' + name);
     }
     else{
       res.status(200).render('readf', {data: actualData, name:  name})
-      actualData = null;
-      console.log('deleted actual data')
+      // actualData = null;
+      // console.log('deleted actual data')
     }
   }
   
 });
+
+router.get('/read/:dir/:name', async(req, res) => {// to fix folder
+  console.log('reads')
+  const {name} = req.params;
+  // const direct = req.body.direct
+  const {dir} = req.params;
+  console.log(dir + name);
+  directoryPath = filePath = './public/docs/' + dir + '/' + name;
+  console.log("path: " + directoryPath)
+
+  //reading part
+  if(name.indexOf('.') <= -1){
+    console.log('read one dir')
+    readDirectory(res, directoryPath)
+  }
+
+  else{
+    // readFile(res, filePath);
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      actualData = data
+    })
+    console.log("actual data: " + actualData)
+    if (actualData == null){
+      fs.readFile(filePath, 'utf8', (err, data) => {
+        actualData = data
+        res.redirect('/files/read/' + name)
+      })
+      // sendData(res, '/files/read/' + name);
+    }
+    else{
+      res.status(200).render('readf', {data: actualData, name:  name})
+      // actualData = null;
+      // console.log('deleted actual data')
+    }
+  }
+})
 
 
 //add page
@@ -61,7 +115,6 @@ router.get('/write/:type', async(req, res) => {
       else{
         res.render('write');
       }
-        // res.status(200).render(`edituser`, {currentuser: user});
     }
     else{
       console.log("you are not registered")
@@ -88,15 +141,8 @@ router.get('/edit/:name', async(req, res) => {// to fix folder
         console.log('no such file or directory')
         res.render('read')
       }
-      else{//rename directory
-
+      else{
         res.render('editfolder', {name: name} )
-        // try {
-        //   fs.renameSync(oldPath, newPath);
-        //   console.log(`Файл или директория успешно переименованы.`);
-        // } catch (err) {
-        //     console.error(`Ошибка при переименовании: ${err.message}`);
-        // }
       }
     });
   }
@@ -110,7 +156,8 @@ router.get('/edit/:name', async(req, res) => {// to fix folder
         res.render('read')
       }
       else{
-        res.render('edit', {name: name, data: data} )
+
+        res.render('edit', {name: name, data: actualData} )
 
         // updateFileSync(filePath, newData, newPath);
       }
@@ -121,38 +168,11 @@ router.get('/edit/:name', async(req, res) => {// to fix folder
       sendData(res, '/files/read/' + name);
     }
     else{
-      res.status(200).render('readf', {data: actualData, name:  name})
-      actualData = null;
-      console.log('deleted actual data')
+      res.status(200).render('edit', {data: actualData, name:  name})
+      // actualData = null;
+      // console.log('deleted actual data')
     }
   }
-  
-
-
-  // try{
-  //   if (currentuser !== null){
-  //     console.log('edit')
-  //     const {name} = req.params;
-  //     filePath = './public/docs/' + name;
-
-  //     readFile(res, filePath);
-
-  //     console.log("actual data: " + actualData)
-  //     if (actualData == null){
-  //       sendData(res, '/files/edit/' + name);
-  //     }
-  //     else{
-  //       res.status(200).render('edit', {data: actualData, name:  name, currentuser: currentuser})
-  //     }
-  //   }
-  //   else{
-  //     console.log("you are not registered")
-  //     res.status(200).render(`user`, {user: user});
-  //   }
-  // } catch(error){
-  //   currentuser = null;
-  //   res.status(500).redirect('/users/auth');
-  // }
 });
 
 
@@ -242,39 +262,48 @@ router.post('/edit/:name', async(req, res) => {
       const {name} = req.params;
       const newname = req.body.name
       const newData = req.body.data;
+      const newPath = './public/docs/' + newname
 
       //direct edit
       if(name.indexOf('.') <= -1){
         directoryPath = './public/docs/' + name 
 
-        try{
-          fs.readdir(directoryPath, 'utf8', (err, data) => {
-            if (err) {
-      
-              fs.mkdir(directoryPath, { recursive: true }, (err) => {
-                if (err) {
-                    console.error(`Ошибка при создании директории ${directoryPath}: ${err.message}`);
-                } else {
-                    console.log(`Директория ${directoryPath} успешно создана.`);
-                    res.redirect('/files/read');
-                }
-            });
+        // try{//rename directory
+          // fs.readdir(directoryPath, 'utf8', (err, data) => {//check such file
+            // if (err) {
+              try {
+                oldPath = directoryPath
+                fs.renameSync(oldPath, newPath);
+                console.log(`Файл или директория успешно переименованы.`);
+                res.redirect('/files/read/' + newname)
+              } catch (err) {
+                console.error(`Ошибка при переименовании: ${err.message}`);
+                res.redirect('/read');
+              }
+       
+                //   fs.mkdir(directoryPath, { recursive: true }, (err) => {
+            //     if (err) {
+            //         console.error(`Ошибка при создании директории ${directoryPath}: ${err.message}`);
+            //     } else {
+            //         console.log(`Директория ${directoryPath} успешно создана.`);
+            //         res.redirect('/files/read');
+            //     }
+            // });
               
-            } else {
-              console.log("such name is already added");
-              res.redirect('/files/write/ford');
-          }
-          })
-        }catch(error){
-          console.log(error)
-          res.status(500).json({message: error.message})
-        }
+            // } else {
+            //   console.log("such name is already added");
+            //   res.redirect('/files/write/ford');
+          // }
+          // })
+        // }catch(error){
+        //   console.log(error)
+        //   res.status(500).json({message: error.message})
+        // }
 
       }
       else{
         //file edit
         filePath = './public/docs/' + name
-        newPath = './public/docs/' + newname
         updateFileSync(filePath, newData, newPath);
         res.redirect('/files/read/' + newname);
       }
@@ -296,16 +325,54 @@ try{
   if (currentuser != null){
     actualData = null;
     const {name} = req.params;
-    filePath = './public/docs/' + name;
-    console.log('delete: ' + filePath);
-    fs.unlink(filePath, (err) => {
-      if (err) {
-          console.error(`Ошибка при удалении файла ${filePath}: ${err.message}`);
-      } else {
-          console.log(`Файл ${filePath} успешно удален.`);
-          res.redirect('/files/read');
-      }
-    });
+    console.log("delete: " + name);
+
+    if(name.indexOf('.') <= -1){//directory
+      directoryPath = './public/docs/' + name 
+  
+      deleteDirectory(directoryPath)
+      res.redirect('/files/read');
+    }
+  
+    else{//file
+      filePath = './public/docs/' + name;
+      console.log('delete: ' + filePath);
+      fs.unlink(filePath, (err) => {
+        if (err) {
+            console.error(`Ошибка при удалении файла ${filePath}: ${err.message}`);
+        } else {
+            console.log(`Файл ${filePath} успешно удален.`);
+            res.redirect('/files/read');
+        }
+      });
+
+
+
+      // filePath = './public/docs/' + name;
+      
+      // fs.readFile(filePath, 'utf8', (err, data) => {
+      //   if (err) {
+      //     console.log('no such file or directory')
+      //     res.render('read')
+      //   }
+      //   else{
+  
+      //     res.render('edit', {name: name, data: actualData} )
+  
+      //     // updateFileSync(filePath, newData, newPath);
+      //   }
+      // });
+      
+      // console.log("actual data: " + actualData)
+      // if (actualData == null){
+      //   sendData(res, '/files/read/' + name);
+      // }
+      // else{
+      //   res.status(200).render('edit', {data: actualData, name:  name})
+      //   // actualData = null;
+      //   // console.log('deleted actual data')
+      // }
+    }
   }
   else{
     console.log("you are not registered")
@@ -349,11 +416,11 @@ function readFile(res, filePath){
   fs.readFile(filePath, 'utf8', (err, data) => {
     if (err) {
       directoryPath = filePath;
-      readDirectory(res, directoryPath);
+      // readDirectory(res, directoryPath);
     } else {
-      // actualData = data; 
-      // console.log( "read data: " + data);
-      // console.log('act in read data: ' + actualData)
+      actualData = data; 
+      console.log( "read data: " + data);
+      console.log('act in read data: ' + actualData)
     } 
   });
 }

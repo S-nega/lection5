@@ -47,4 +47,16 @@ block content
     //-   input(type="hidden" name="name" value="#{d}") 
     //-   input(type="submit" value="#{d}")
     p 
-      <a href="/files/read/#{d}">#{d} 
+      //- form(action="/files/read/#{dir}/#{d}", method="get")
+      //-   //- if dir 
+      //-   input(type="hidden" name="direct" value="#{dir}")
+      //-   //- else 
+      //-     input(type="hidden" name="dir" value="null")
+      //-   input(type="submit" value="#{d}")
+      //- <a href="/files/read/#{d}">#{d} 
+
+    if dir 
+      a(href="/files/read/#{dir}/#{d}") #{d}
+    else 
+      a(href="/files/read/#{d}") #{d} 
+      
